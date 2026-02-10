@@ -1,0 +1,1935 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>理想销售AI助手</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro SC", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #f8fafC 0%, #ffffff 50%, #f5f7f9 100%);
+            width: 1194px;
+            height: 834px;
+            overflow: hidden;
+            color: #2a2a2a;
+        }
+
+        .container {
+            display: flex;
+            height: 100%;
+        }
+
+        /* 左侧边栏 */
+        .sidebar {
+            width: 240px;
+            background: rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(30px) saturate(180%);
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s ease;
+            border-right: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow:
+                2px 0 20px rgba(0, 0, 0, 0.03),
+                inset 1px 0 0 rgba(255, 255, 255, 0.6);
+        }
+
+        .sidebar.collapsed {
+            width: 64px;
+        }
+
+        .sidebar.collapsed .logo-text,
+        .sidebar.collapsed .new-chat-btn span,
+        .sidebar.collapsed .history-date,
+        .sidebar.collapsed .history-item,
+        .sidebar.collapsed .user-name,
+        .sidebar.collapsed .user-id,
+        .sidebar.collapsed .sidebar-content,
+        .sidebar.collapsed .sidebar-footer {
+            display: none;
+        }
+
+        .sidebar.collapsed .header-top {
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .sidebar.collapsed .logo {
+            justify-content: center;
+        }
+
+        .sidebar.collapsed .new-chat-btn {
+            padding: 12px;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+        }
+
+        .sidebar.collapsed .toggle-btn {
+            transform: rotate(180deg);
+        }
+
+        .sidebar-header {
+            padding: 16px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+            flex-shrink: 0;
+            transition: padding 0.3s ease;
+        }
+
+        .sidebar.collapsed .sidebar-header {
+            padding: 12px 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #4db8ac;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar.collapsed .logo-icon {
+            width: 40px;
+            height: 40px;
+        }
+
+        .logo-icon svg {
+            width: 32px;
+            height: 32px;
+        }
+
+        .logo-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2a2a2a;
+            white-space: nowrap;
+            transition: opacity 0.2s ease;
+        }
+
+        .toggle-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: rgba(248, 250, 252, 0.6);
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .toggle-btn:hover {
+            background: rgba(178, 223, 219, 0.2);
+            color: #4db8ac;
+        }
+
+        .toggle-btn svg {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .new-chat-btn {
+            width: 100%;
+            padding: 10px 16px;
+            background: linear-gradient(135deg, #4db8ac, #5ec9bd);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .new-chat-btn:hover {
+            background: linear-gradient(135deg, #42a89d, #4fb5a9);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(77, 184, 172, 0.25);
+        }
+
+        .new-chat-btn:active {
+            transform: translateY(0);
+        }
+
+        .new-chat-btn svg {
+            width: 18px;
+            height: 18px;
+            transition: all 0.3s ease;
+        }
+
+        .new-chat-btn span {
+            transition: opacity 0.2s ease;
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .sidebar-content::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .sidebar-content::-webkit-scrollbar-thumb {
+            background: #e0e0e0;
+            border-radius: 2px;
+        }
+
+        .sidebar-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        /* 功能按钮区域（在输入框上方） */
+        .top-features {
+            padding: 12px 40px 16px;
+            background: transparent;
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .feature-btn {
+            flex: 1;
+            max-width: 200px;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(30px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+            box-shadow:
+                0 4px 16px rgba(0, 0, 0, 0.03),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+
+        .feature-btn:hover {
+            background: rgba(178, 223, 219, 0.25);
+            border-color: rgba(77, 184, 172, 0.3);
+            color: #4db8ac;
+            transform: translateY(-3px);
+            box-shadow:
+                0 8px 24px rgba(0, 0, 0, 0.06),
+                inset 0 1px 0 rgba(255, 255, 255, 0.7);
+        }
+
+        .feature-btn:active {
+            transform: translateY(0);
+        }
+
+        .feature-btn .nav-icon {
+            font-size: 18px;
+            width: 20px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .feature-btn .nav-icon svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* 底部用户信息 */
+        .sidebar-footer {
+            padding: 16px;
+            border-top: 1px solid rgba(0, 0, 0, 0.06);
+            flex-shrink: 0;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .user-profile:hover {
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .user-info {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1a1a;
+            line-height: 1.3;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-id {
+            font-size: 12px;
+            color: #999;
+            line-height: 1.3;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-section {
+            padding: 16px;
+        }
+
+        .history-group {
+            margin-bottom: 20px;
+        }
+
+        .history-date {
+            font-size: 12px;
+            font-weight: 600;
+            color: #999;
+            padding: 0 4px 8px;
+            letter-spacing: 0.3px;
+        }
+
+        .history-item {
+            padding: 10px 12px;
+            margin: 2px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #555;
+            transition: all 0.3s;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.4;
+        }
+
+        .history-item:hover {
+            background: rgba(178, 223, 219, 0.15);
+            color: #4db8ac;
+        }
+
+        .history-item.active {
+            background: rgba(178, 223, 219, 0.2);
+            color: #4db8ac;
+            font-weight: 500;
+        }
+
+
+        /* 主内容区 */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: transparent;
+        }
+
+
+        .chat-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px;
+            background: transparent;
+        }
+
+        .chat-area::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-area::-webkit-scrollbar-thumb {
+            background: #d0d0d0;
+            border-radius: 3px;
+        }
+
+        .welcome-view {
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .welcome-logo {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .welcome-logo svg {
+            width: 64px;
+            height: 64px;
+        }
+
+        .welcome-title {
+            font-size: 32px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+        }
+
+        .welcome-subtitle {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 48px;
+            line-height: 1.6;
+        }
+
+        .feature-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            border: 2px solid #f0f0f0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #1976d2, #42a5f5);
+            transform: scaleX(0);
+            transition: transform 0.3s;
+        }
+
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+            border-color: #1976d2;
+        }
+
+        .feature-card:active {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        }
+
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            margin: 0 auto 20px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+
+        .feature-card:nth-child(1) .feature-icon {
+            background: linear-gradient(135deg, #e3f2fd 0%, #90caf9 100%);
+        }
+
+        .feature-card:nth-child(2) .feature-icon {
+            background: linear-gradient(135deg, #f3e5f5 0%, #ce93d8 100%);
+        }
+
+        .feature-card:nth-child(3) .feature-icon {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffb74d 100%);
+        }
+
+        .feature-card:nth-child(4) .feature-icon {
+            background: linear-gradient(135deg, #e8f5e9 0%, #81c784 100%);
+        }
+
+        .feature-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 10px;
+        }
+
+        .feature-desc {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* 工具区样式 */
+        .tools-section {
+            margin-top: 32px;
+            padding-top: 32px;
+            border-top: 1px solid #e8e8e8;
+        }
+
+        .tools-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .tools-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tools-title::before {
+            content: '🛠️';
+            font-size: 16px;
+        }
+
+        .tools-customize {
+            font-size: 12px;
+            color: #1976d2;
+            cursor: pointer;
+            padding: 4px 12px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .tools-customize:hover {
+            background: #e3f2fd;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+        }
+
+        .tool-item {
+            background: #f8f9fa;
+            border: 1px solid #e8e8e8;
+            border-radius: 10px;
+            padding: 16px 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .tool-item:hover {
+            background: white;
+            border-color: #1976d2;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .tool-icon {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .tool-name {
+            font-size: 12px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .messages-view {
+            max-width: 800px;
+            margin: 0 auto;
+            display: none;
+        }
+
+        .messages-view.active {
+            display: block;
+        }
+
+        .message-group {
+            margin-bottom: 24px;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .message-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .message-avatar.ai {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .message-avatar.user {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .message-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: #999;
+            margin-left: auto;
+        }
+
+        .message-body {
+            margin-left: 38px;
+            padding: 16px 20px;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(30px) saturate(180%);
+            border-radius: 14px;
+            font-size: 14px;
+            line-height: 1.7;
+            color: #555;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow:
+                0 4px 16px rgba(0, 0, 0, 0.03),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+
+        .message-body strong {
+            font-weight: 600;
+            color: #2a2a2a;
+        }
+
+        .message-actions {
+            margin-left: 38px;
+            margin-top: 12px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .action-chip {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #666;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .action-chip:hover {
+            border-color: rgba(77, 184, 172, 0.3);
+            color: #4db8ac;
+            background: rgba(178, 223, 219, 0.15);
+        }
+
+        .action-chip:active {
+            background: rgba(178, 223, 219, 0.25);
+            border-color: rgba(77, 184, 172, 0.4);
+            color: #42a89d;
+        }
+
+        .action-chip.primary {
+            background: rgba(255, 255, 255, 0.4);
+            color: #666;
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+
+        .action-chip.primary:hover {
+            background: rgba(178, 223, 219, 0.2);
+            color: #4db8ac;
+            border-color: rgba(77, 184, 172, 0.3);
+        }
+
+        .action-chip.primary:active {
+            background: rgba(178, 223, 219, 0.3);
+            color: #42a89d;
+            border-color: rgba(77, 184, 172, 0.4);
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 16px 20px;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(30px);
+            border-radius: 12px;
+            width: fit-content;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: #d0d0d0;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.6;
+            }
+            30% {
+                transform: translateY(-8px);
+                opacity: 1;
+            }
+        }
+
+        /* 输入区域 */
+        .input-section {
+            padding: 20px 40px 32px;
+            background: transparent;
+        }
+
+        .upgrade-banner {
+            max-width: 800px;
+            margin: 0 auto 16px;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(227, 242, 253, 0.5);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #666;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .upgrade-icon {
+            color: #7b1fa2;
+            font-size: 16px;
+        }
+
+        .upgrade-link {
+            margin-left: auto;
+            color: #1976d2;
+            text-decoration: none;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .upgrade-link:hover {
+            text-decoration: underline;
+        }
+
+        .input-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .input-container {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(30px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 24px;
+            padding: 12px 20px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow:
+                0 4px 20px rgba(0, 0, 0, 0.03),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        }
+
+        .input-container:focus-within {
+            border-color: rgba(77, 184, 172, 0.3);
+            box-shadow:
+                0 8px 24px rgba(0, 0, 0, 0.06),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        .input-left {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .input-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .input-field {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 14px;
+            color: #2a2a2a;
+            background: transparent;
+            resize: none;
+            line-height: 1.5;
+            min-height: 24px;
+            max-height: 120px;
+        }
+
+        .input-field::placeholder {
+            color: #999;
+        }
+
+        .input-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+
+        .input-btn:hover {
+            background: rgba(178, 223, 219, 0.2);
+            color: #4db8ac;
+        }
+
+        .input-btn:active {
+            background: rgba(178, 223, 219, 0.3);
+            color: #42a89d;
+        }
+
+        .input-btn svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .input-btn.recording {
+            background: #ff5252;
+            color: white;
+        }
+
+        .input-btn.recording:hover {
+            background: #ff1744;
+        }
+
+        /* 深度思考开关 */
+        .think-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 13px;
+            color: #666;
+            white-space: nowrap;
+        }
+
+        .think-toggle:hover {
+            background: #ebebeb;
+            border-color: #d0d0d0;
+        }
+
+        .think-toggle.active {
+            background: #e3f2fd;
+            border-color: #1976d2;
+            color: #1976d2;
+        }
+
+        .think-toggle .toggle-switch {
+            width: 36px;
+            height: 20px;
+            background: #d0d0d0;
+            border-radius: 10px;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .think-toggle.active .toggle-switch {
+            background: #1976d2;
+        }
+
+        .think-toggle .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .think-toggle.active .toggle-switch::after {
+            left: 18px;
+        }
+
+        .think-toggle .toggle-icon {
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+        }
+
+        .think-toggle .toggle-text {
+            font-weight: 500;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(245, 247, 250, 0.8);
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-overlay.show {
+            display: flex;
+        }
+
+        .loading-content {
+            text-align: center;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f0f0f0;
+            border-top-color: #1976d2;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 12px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* 策略卡片样式 - 变体4毛玻璃叠层设计（白色浅灰主色） */
+        .strategy-card {
+            background: rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(30px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 16px;
+            padding: 18px 16px;
+            cursor: pointer;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow:
+                0 4px 20px rgba(0, 0, 0, 0.04),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .strategy-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, transparent 70%);
+            opacity: 0;
+            transition: all 0.6s ease;
+        }
+
+        .strategy-card:hover::before {
+            opacity: 1;
+            top: -100%;
+            left: -100%;
+        }
+
+        .strategy-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow:
+                0 20px 48px rgba(0, 0, 0, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .strategy-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .strategy-card-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(248, 250, 252, 0.6));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+            transition: all 0.4s ease;
+            flex-shrink: 0;
+        }
+
+        .strategy-card:hover .strategy-card-icon {
+            transform: rotate(12deg) scale(1.12);
+            background: linear-gradient(135deg, rgba(178, 223, 219, 0.25), rgba(235, 248, 247, 0.4));
+            box-shadow: 0 8px 24px rgba(77, 184, 172, 0.15);
+        }
+
+        .strategy-card-icon svg {
+            width: 22px;
+            height: 22px;
+            stroke: #666;
+            transition: all 0.4s ease;
+        }
+
+        .strategy-card:hover .strategy-card-icon svg {
+            stroke: #4db8ac;
+        }
+
+        .strategy-card-count {
+            font-size: 11px;
+            font-weight: 600;
+            color: #999;
+            background: rgba(255, 255, 255, 0.6);
+            padding: 4px 10px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .strategy-card:hover .strategy-card-count {
+            background: rgba(178, 223, 219, 0.2);
+            color: #4db8ac;
+        }
+
+        .strategy-card-content {
+            margin-bottom: 10px;
+        }
+
+        .strategy-card-title {
+            font-size: 12px;
+            color: #666;
+            font-weight: 500;
+            line-height: 1.4;
+            margin-bottom: 6px;
+        }
+
+        .strategy-card-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2a2a2a;
+            margin-bottom: 10px;
+            line-height: 1;
+        }
+
+        .strategy-card:hover .strategy-card-value {
+            color: #4db8ac;
+        }
+
+        .strategy-card-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .strategy-card-tag {
+            padding: 4px 8px;
+            background: rgba(178, 223, 219, 0.15);
+            border-radius: 8px;
+            font-size: 10px;
+            color: #4db8ac;
+            font-weight: 500;
+            opacity: 0;
+            transform: translateY(8px);
+            transition: all 0.3s ease;
+        }
+
+        .strategy-card-tag:nth-child(1) {
+            transition-delay: 0.1s;
+        }
+
+        .strategy-card-tag:nth-child(2) {
+            transition-delay: 0.15s;
+        }
+
+        .strategy-card:hover .strategy-card-tag {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 左侧边栏 -->
+        <div class="sidebar collapsed" id="sidebar">
+            <!-- 顶部固定区域 -->
+            <div class="sidebar-header">
+                <div class="header-top">
+                    <div class="logo">
+                        <div class="logo-icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+                                <path d="M12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21" stroke="currentColor" stroke-width="2"/>
+                                <circle cx="12" cy="12" r="3" fill="currentColor"/>
+                            </svg>
+                        </div>
+                        <div class="logo-text">理想AI助手</div>
+                    </div>
+                    <button class="toggle-btn" onclick="toggleSidebar()" title="收起侧边栏">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
+                            <path d="M9 3V21" stroke="currentColor" stroke-width="2"/>
+                            <path d="M14 10L11 13L14 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+                <button class="new-chat-btn" onclick="newChat()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <span>开启新对话</span>
+                </button>
+            </div>
+
+            <!-- 中间滚动区域 -->
+            <div class="sidebar-content">
+                <div class="history-section">
+                    <div class="history-group">
+                        <div class="history-date">今天</div>
+                        <div class="history-item active">王先生L9购车咨询</div>
+                        <div class="history-item">理想L8金融方案计算</div>
+                        <div class="history-item">问界M9竞品对比分析</div>
+                    </div>
+
+                    <div class="history-group">
+                        <div class="history-date">昨天</div>
+                        <div class="history-item">张女士L7试驾预约</div>
+                        <div class="history-item">二手车置换评估流程</div>
+                        <div class="history-item">家庭用户购车需求分析</div>
+                        <div class="history-item">L7 Air与Max配置对比</div>
+                    </div>
+
+                    <div class="history-group">
+                        <div class="history-date">本周</div>
+                        <div class="history-item">陈先生订单跟进话术</div>
+                        <div class="history-item">理想L6新客户接待方案</div>
+                        <div class="history-item">春节促销活动策划</div>
+                        <div class="history-item">李女士价格异议处理</div>
+                        <div class="history-item">蔚来ES7与L8深度对比</div>
+                        <div class="history-item">周先生增程式原理讲解</div>
+                        <div class="history-item">智驾功能演示话术</div>
+                    </div>
+
+                    <div class="history-group">
+                        <div class="history-date">上周</div>
+                        <div class="history-item">赵女士成交促成策略</div>
+                        <div class="history-item">理想L9旗舰版亮点介绍</div>
+                        <div class="history-item">客户流失原因分析</div>
+                        <div class="history-item">刘先生预算方案定制</div>
+                        <div class="history-item">试驾路线优化建议</div>
+                    </div>
+
+                    <div class="history-group">
+                        <div class="history-date">本月</div>
+                        <div class="history-item">吴先生老客户转介绍</div>
+                        <div class="history-item">L6 Pro用户画像分析</div>
+                        <div class="history-item">销售转化率提升方案</div>
+                        <div class="history-item">郑女士购车顾虑化解</div>
+                        <div class="history-item">理想汽车品牌故事讲解</div>
+                        <div class="history-item">保险与上牌服务介绍</div>
+                        <div class="history-item">孙先生交车准备清单</div>
+                        <div class="history-item">冬季用车保养建议</div>
+                    </div>
+
+                    <div class="history-group">
+                        <div class="history-date">上月</div>
+                        <div class="history-item">黄先生长期跟进记录</div>
+                        <div class="history-item">L8空间优势展示话术</div>
+                        <div class="history-item">小鹏G9竞品分析报告</div>
+                        <div class="history-item">徐女士增购客户维护</div>
+                        <div class="history-item">季度销售业绩复盘</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 底部固定区域 -->
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="user-avatar">李</div>
+                    <div class="user-info">
+                        <div class="user-name">李明</div>
+                        <div class="user-id">152******52</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <div class="chat-area" id="chatArea">
+                <!-- 欢迎视图 -->
+                <div class="welcome-view" id="welcomeView">
+                    <div class="welcome-logo">
+                        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="32" cy="32" r="28" stroke="#1976d2" stroke-width="4"/>
+                            <path d="M32 4C16.536 4 4 16.536 4 32C4 47.464 16.536 60 32 60" stroke="#1976d2" stroke-width="4" stroke-linecap="round"/>
+                            <circle cx="32" cy="32" r="8" fill="#1976d2"/>
+                        </svg>
+                    </div>
+                    <div class="welcome-title">欢迎使用理想汽车销售AI助手</div>
+                    <div class="welcome-subtitle">
+                        您的专属智能销售顾问，为任何销售场景提供专业支持<br>
+                        请从左侧选择功能开始使用
+                    </div>
+                </div>
+
+                <!-- 消息视图 -->
+                <div class="messages-view" id="messagesView">
+                    <!-- 消息将动态插入这里 -->
+                </div>
+            </div>
+
+            <!-- 输入区域 -->
+            <div class="input-section">
+                <!-- 功能按钮 -->
+                <div class="top-features">
+                    <button class="feature-btn" onclick="startScenario('业务诊断')">
+                        <span class="nav-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M3 3V16C3 17.1046 3.89543 18 5 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M18 9L13 14L10 11L7 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </span>
+                        <span>业务诊断</span>
+                    </button>
+                    <button class="feature-btn" onclick="startScenario('获客助手')">
+                        <span class="nav-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                                <circle cx="12" cy="12" r="6" stroke="currentColor" stroke-width="2"/>
+                                <circle cx="12" cy="12" r="2" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                        </span>
+                        <span>获客助手</span>
+                    </button>
+                    <button class="feature-btn" onclick="startScenario('客户顾问')">
+                        <span class="nav-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </span>
+                        <span>客户顾问</span>
+                    </button>
+                    <button class="feature-btn" onclick="startScenario('任务助手')">
+                        <span class="nav-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M9 11L12 14L22 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M21 12V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </span>
+                        <span>任务助手</span>
+                    </button>
+                </div>
+
+                <div class="input-wrapper">
+                    <div class="input-container">
+                        <div class="input-left">
+                            <button class="input-btn camera-btn" title="拍照或上传图片" onclick="showAddMenu()">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M23 19C23 19.5304 22.7893 20.0391 22.4142 20.4142C22.0391 20.7893 21.5304 21 21 21H3C2.46957 21 1.96086 20.7893 1.58579 20.4142C1.21071 20.0391 1 19.5304 1 19V8C1 7.46957 1.21071 6.96086 1.58579 6.58579C1.96086 6.21071 2.46957 6 3 6H7L9 3H15L17 6H21C21.5304 6 22.0391 6.21071 22.4142 6.58579C22.7893 6.96086 23 7.46957 23 8V19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M12 17C14.2091 17 16 15.2091 16 13C16 10.7909 14.2091 9 12 9C9.79086 9 8 10.7909 8 13C8 15.2091 9.79086 17 12 17Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
+                            <textarea
+                                class="input-field"
+                                id="messageInput"
+                                placeholder="发消息或按住说话..."
+                                rows="1"
+                                onkeydown="handleKey(event)"
+                                oninput="autoGrow(this)"
+                            ></textarea>
+                        </div>
+                        <div class="input-right">
+                            <button class="input-btn voice-btn" onclick="toggleVoice()" id="voiceBtn" title="语音输入">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 1C10.3431 1 9 2.34315 9 4V12C9 13.6569 10.3431 15 12 15C13.6569 15 15 13.6569 15 12V4C15 2.34315 13.6569 1 12 1Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M19 10V12C19 15.866 15.866 19 12 19C8.13401 19 5 15.866 5 12V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M12 19V23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M8 23H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
+                            <button class="input-btn add-btn" title="添加内容" onclick="showAddMenu()">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M12 8V16M8 12H16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 加载动画 -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">AI正在思考...</div>
+        </div>
+    </div>
+
+    <script>
+        // 全局状态
+        let currentScenario = null;
+        let scenarioStep = 0;
+        let conversationContext = {};
+        let isRecording = false;
+
+        // 自定义工具功能
+        function customizeTools() {
+            alert('工具自定义功能\n\n您可以：\n• 添加/删除工具\n• 调整工具顺序\n• 创建自定义工具\n• 设置常用工具');
+        }
+
+        // 场景流程定义
+        const scenarios = {
+            '业务诊断': {
+                steps: [
+                    {
+                        text: '业务诊断模式已启动。\n\n我将帮您分析销售业绩、识别问题并提供改进建议。\n\n请问您想诊断哪个方面？',
+                        actions: ['销售转化率', '客户流失率', '跟进效率', '全面诊断']
+                    },
+                    {
+                        text: '正在分析您的<strong>销售转化率</strong>...\n\n📊 <strong>数据概览</strong>\n• 到店转化率：35%（行业平均：42%）\n• 试驾转化率：48%（行业平均：55%）\n• 订单转化率：23%（行业平均：28%）\n\n⚠️ <strong>问题识别</strong>\n1. 到店转化率偏低\n2. 试驾后未成交占比高\n\n下一步操作？',
+                        actions: ['查看建议', '详细分析', '对比同期', '导出报告']
+                    }
+                ]
+            },
+            '获客助手': {
+                steps: [
+                    {
+                        text: '获客助手已启动！\n\n我将帮您制定精准获客策略，提升线索质量和转化效率。\n\n请问您当前的获客渠道主要是？',
+                        actions: ['线上渠道', '线下活动', '老客转介', '多渠道混合']
+                    },
+                    {
+                        text: '收到！针对<strong>线上渠道</strong>获客，我为您准备了优化方案：\n\n🎯 <strong>精准投放策略</strong>\n• 目标人群：25-45岁家庭用户\n• 推广平台：抖音、小红书、微信\n• 关键词：智能电驾、家庭用车\n\n📝 <strong>内容营销建议</strong>\n• 真实车主故事\n• 家庭出行场景\n• 智驾体验视频\n\n需要生成具体方案吗？',
+                        actions: ['生成投放方案', '内容创意库', '预算规划', '效果预估']
+                    }
+                ]
+            },
+            '客户顾问': {
+                steps: [
+                    {
+                        text: '客户顾问模式已启动。\n\n我将作为您的智能助手，帮助您深度了解客户需求，提供个性化服务方案。\n\n请问客户目前处于哪个阶段？',
+                        actions: ['初次到店', '对比选择', '准备下单', '售后服务']
+                    },
+                    {
+                        text: '了解！客户处于<strong>对比选择</strong>阶段。\n\n让我帮您深入了解客户：\n\n❓ <strong>需求诊断</strong>\n请告诉我客户的基本情况：\n• 家庭人口\n• 用车场景\n• 预算范围\n• 关注重点\n\n我将为您生成定制化的推荐方案。',
+                        actions: ['输入客户信息', '智能问卷', '历史记录', '竞品分析']
+                    }
+                ]
+            },
+            '任务助手': {
+                steps: [
+                    {
+                        text: '任务助手已启动！\n\n我将帮您管理销售任务，设置跟进提醒，提升工作效率。\n\n请问您需要什么帮助？',
+                        actions: ['创建任务', '查看待办', '跟进提醒', '效率分析']
+                    },
+                    {
+                        text: '为您创建销售任务：\n\n📋 <strong>任务类型</strong>\n请选择要创建的任务类型：',
+                        actions: ['客户跟进', '试驾安排', '合同签订', '交车准备', '自定义任务']
+                    }
+                ]
+            },
+            '新客接待': {
+                steps: [
+                    {
+                        text: '已为您生成专业的欢迎话术：\n\n<strong>"您好，欢迎光临理想汽车！我是您的专属顾问李明。"</strong>\n\n"看到您今天来店里，我特别高兴。理想汽车专注为家庭用户打造安全、舒适的智能电动车。我们目前有L6、L7、L8、L9四款车型，每一款都有独特的优势。"\n\n请问您之前对理想汽车有了解吗？',
+                        actions: ['直接使用', '调整语气', '复制话术']
+                    },
+                    {
+                        text: '很好！现在让我帮您了解客户的用车需求。\n\n请问客户家庭人口情况如何？这将帮助我们推荐最合适的车型。',
+                        actions: ['3人以下', '4-5人', '5人以上', '不确定']
+                    },
+                    {
+                        text: '明白了！4-5人家庭，我建议重点推荐 <strong>理想L8（6座）</strong>。\n\n<strong>核心卖点：</strong>\n• 第二排独立座椅，乘坐舒适\n• 中间过道，照顾家人方便\n• 2920mm轴距，空间宽敞\n\n客户主要关注哪方面？',
+                        actions: ['价格', '空间舒适', '智能驾驶', '性能配置']
+                    },
+                    {
+                        text: '完美！空间舒适是L8的强项。为您生成详细讲解话术：\n\n<strong>L8空间优势：</strong>\n\n🚗 超大空间\n• 车长5218mm，轴距2920mm\n• 第二排腿部空间1050mm\n• 后备箱标准180L，最大可扩展至1900L\n\n💺 舒适座椅\n• 第二排独立航空座椅\n• 10层舒适坐垫，长途不累\n• 座椅加热/通风/按摩全配\n\n下一步建议？',
+                        actions: ['查看配置表', '计算落地价', '安排试驾', '发送话术']
+                    }
+                ]
+            },
+            '产品对比': {
+                steps: [
+                    {
+                        text: '产品对比工具已启动。请选择要对比的车型：',
+                        actions: ['L6 vs L7', 'L7 vs L8', 'L8 vs L9', '自定义对比']
+                    },
+                    {
+                        text: '收到！<strong>L7 vs L8</strong> 对比分析。\n\n客户主要关注哪方面的对比？',
+                        actions: ['全面对比', '空间差异', '配置差异', '价格差异']
+                    },
+                    {
+                        text: '为您生成<strong>空间详细对比</strong>：\n\n🚗 <strong>理想L7（5座）</strong>\n• 尺寸：5050×1995×1750mm\n• 轴距：2920mm\n• 后备箱：240L（标准）\n\n🚗 <strong>理想L8（6座）</strong>\n• 尺寸：5218×1998×1800mm\n• 轴距：2920mm（同L7）\n• 后备箱：180L（标准）\n• 独特优势：第二排独立座椅\n\n客户的家庭情况如何？',
+                        actions: ['3口之家', '二胎家庭', '三代同堂', '商务用车']
+                    }
+                ]
+            },
+            '价格异议': {
+                steps: [
+                    {
+                        text: '检测到价格异议场景。让我帮您应对。\n\n首先，请问客户在对比哪款车型？',
+                        actions: ['L6', 'L7', 'L8', 'L9']
+                    },
+                    {
+                        text: '明白了，客户关注<strong>L7</strong>的价格。\n\n请问客户主要对比的竞品是？',
+                        actions: ['问界M7', '蔚来ES6', '小鹏G9', '燃油车']
+                    },
+                    {
+                        text: '收到！L7 vs <strong>问界M7</strong> 的价格对比：\n\n💰 <strong>价格分析</strong>\n• 理想L7：31.98-37.98万\n• 问界M7：24.98-32.98万\n• 差价：约5-7万\n\n✅ <strong>理想L7优势</strong>\n1. 空间更大（轴距+100mm）\n2. 智驾更强（城市NOA全国开通）\n3. 使用成本更低（年省8000元）\n4. 保值率更高（3年保值68%）\n\n需要进一步操作？',
+                        actions: ['发送话术', '详细对比表', '金融方案', '使用成本']
+                    }
+                ]
+            },
+            '试驾管理': {
+                steps: [
+                    {
+                        text: '试驾管理流程已启动。\n\n请问客户确定要试驾的车型了吗？',
+                        actions: ['L6', 'L7', 'L8', 'L9', '还在对比']
+                    },
+                    {
+                        text: '很好！客户选择试驾<strong>L7</strong>。\n\n请问客户的试驾时间偏好？',
+                        actions: ['今天', '明天', '本周末', '下周']
+                    },
+                    {
+                        text: '完美！今天试驾。为您准备完整方案：\n\n📅 <strong>试驾安排</strong>\n• 时间：今天下午3:00-3:45\n• 车型：理想L7 Max\n• 时长：45分钟\n\n🗺️ <strong>推荐路线</strong>\n1. 城市道路体验（20分钟）\n2. 高速路段（15分钟）\n3. 返回讲解（10分钟）\n\n下一步操作？',
+                        actions: ['复制话术', '发送邀约', '创建日程', '试驾完成']
+                    }
+                ]
+            }
+        };
+
+        // 开始场景
+        function startScenario(scenario) {
+            currentScenario = scenario;
+            scenarioStep = 0;
+
+            document.getElementById('welcomeView').style.display = 'none';
+            document.getElementById('messagesView').classList.add('active');
+
+            addMsg('user', `开始${scenario}流程`);
+
+            setTimeout(() => {
+                showLoading();
+                setTimeout(() => {
+                    hideLoading();
+                    showScenarioStep();
+                }, 1000);
+            }, 200);
+        }
+
+        function showScenarioStep() {
+            if (!currentScenario || !scenarios[currentScenario]) return;
+
+            const scenario = scenarios[currentScenario];
+            if (scenarioStep >= scenario.steps.length) {
+                addMsg('ai', '本轮对话已完成！还需要其他帮助吗？', ['新建对话', '继续咨询']);
+                return;
+            }
+
+            const step = scenario.steps[scenarioStep];
+            addMsg('ai', step.text, step.actions);
+        }
+
+        function handleAction(action) {
+            addMsg('user', action);
+            scenarioStep++;
+
+            setTimeout(() => {
+                showLoading();
+                setTimeout(() => {
+                    hideLoading();
+                    showScenarioStep();
+                }, 800);
+            }, 200);
+        }
+
+        function quickAction(action) {
+            addMsg('user', action);
+            setTimeout(() => {
+                showLoading();
+                setTimeout(() => {
+                    hideLoading();
+                    addMsg('ai', '我为您提供一些创新的销售思路和建议...', ['查看更多', '应用到对话']);
+                }, 800);
+            }, 200);
+        }
+
+        function addMsg(type, text, actions = null) {
+            const container = document.getElementById('messagesView');
+            const div = document.createElement('div');
+            div.className = 'message-group';
+
+            let actionsHTML = '';
+            if (actions && actions.length > 0) {
+                actionsHTML = '<div class="message-actions">';
+                actions.forEach((a, i) => {
+                    const cls = i === 0 ? ' primary' : '';
+                    actionsHTML += `<button class="action-chip${cls}" onclick="handleAction('${a}')">${a}</button>`;
+                });
+                actionsHTML += '</div>';
+            }
+
+            div.innerHTML = `
+                <div class="message-header">
+                    <div class="message-avatar ${type}">
+                        ${type === 'ai' ? 'AI' : '我'}
+                    </div>
+                    <div class="message-name">${type === 'ai' ? '理想助手' : '李明'}</div>
+                    <div class="message-time">${getTime()}</div>
+                </div>
+                <div class="message-body">${text.replace(/\n/g, '<br>')}</div>
+                ${actionsHTML}
+            `;
+
+            container.appendChild(div);
+            scrollToBottom();
+        }
+
+        function showTyping() {
+            const container = document.getElementById('messagesView');
+            const div = document.createElement('div');
+            div.id = 'typing';
+            div.className = 'message-group';
+            div.innerHTML = `
+                <div class="message-header">
+                    <div class="message-avatar ai">AI</div>
+                    <div class="message-name">理想助手</div>
+                </div>
+                <div class="typing-indicator" style="margin-left: 38px;">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            `;
+            container.appendChild(div);
+            scrollToBottom();
+        }
+
+        function hideTyping() {
+            const el = document.getElementById('typing');
+            if (el) el.remove();
+        }
+
+        function showLoading() {
+            document.getElementById('loadingOverlay').classList.add('show');
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.remove('show');
+        }
+
+        function send() {
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            if (document.getElementById('welcomeView').style.display !== 'none') {
+                document.getElementById('welcomeView').style.display = 'none';
+                document.getElementById('messagesView').classList.add('active');
+            }
+
+            addMsg('user', text);
+            input.value = '';
+            input.style.height = 'auto';
+
+            intelligentResponse(text);
+        }
+
+        function intelligentResponse(text) {
+            setTimeout(() => {
+                showLoading();
+                setTimeout(() => {
+                    hideLoading();
+
+                    if (text.includes('欢迎') || text.includes('接待') || text.includes('新客')) {
+                        startScenario('新客接待');
+                    } else if (text.includes('贵') || text.includes('价格')) {
+                        startScenario('价格异议');
+                    } else if (text.includes('对比') || text.includes('区别')) {
+                        startScenario('产品对比');
+                    } else if (text.includes('试驾')) {
+                        startScenario('试驾管理');
+                    } else {
+                        addMsg('ai', '我理解您的需求。让我为您提供专业的建议和方案。', ['查看详情', '生成方案', '继续咨询']);
+                    }
+                }, 1000);
+            }, 200);
+        }
+
+        function handleKey(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                send();
+            }
+        }
+
+        function autoGrow(el) {
+            el.style.height = 'auto';
+            el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+        }
+
+
+        function toggleVoice() {
+            const btn = document.getElementById('voiceBtn');
+            isRecording = !isRecording;
+
+            if (isRecording) {
+                btn.classList.add('recording');
+                btn.title = '停止录音';
+            } else {
+                btn.classList.remove('recording');
+                btn.title = '语音输入';
+                const input = document.getElementById('messageInput');
+                input.value = '客户说L7太贵了，怎么办？';
+                input.focus();
+            }
+        }
+
+        function getTime() {
+            const now = new Date();
+            return `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+        }
+
+        function scrollToBottom() {
+            const area = document.getElementById('chatArea');
+            setTimeout(() => {
+                area.scrollTop = area.scrollHeight;
+            }, 100);
+        }
+
+        function newChat() {
+            currentScenario = null;
+            scenarioStep = 0;
+            conversationContext = {};
+
+            // 清空消息
+            document.getElementById('messagesView').innerHTML = '';
+            document.getElementById('messagesView').classList.remove('active');
+
+            // 显示欢迎页
+            document.getElementById('welcomeView').style.display = 'block';
+
+            // 清空输入框
+            const input = document.getElementById('messageInput');
+            input.value = '';
+            input.style.height = 'auto';
+
+            // 滚动到顶部
+            document.getElementById('chatArea').scrollTop = 0;
+        }
+
+        function showAllHistory() {
+            alert('显示所有历史对话...');
+        }
+
+        // 切换侧边栏展开/收起
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+
+        // 添加内容菜单
+        function showAddMenu() {
+            alert('添加内容功能：可以添加文件、图片、文档等');
+        }
+
+        // 深度思考切换
+        let isDeepThinking = false;
+        function toggleDeepThink() {
+            const toggle = document.getElementById('thinkToggle');
+            isDeepThinking = !isDeepThinking;
+
+            if (isDeepThinking) {
+                toggle.classList.add('active');
+            } else {
+                toggle.classList.remove('active');
+            }
+        }
+
+        // 更多选项
+        function showMoreOptions() {
+            alert('更多选项：模型设置、导出对话、清空历史等');
+        }
+
+        // 页面加载时自动开启智能分析
+        window.addEventListener('DOMContentLoaded', function() {
+            // 隐藏欢迎页面，显示消息视图
+            document.getElementById('welcomeView').style.display = 'none';
+            document.getElementById('messagesView').classList.add('active');
+
+            // 延迟500ms后开始AI自动对话
+            setTimeout(() => {
+                startAutoAnalysis();
+            }, 500);
+        });
+
+        // 自动智能分析流程
+        function startAutoAnalysis() {
+            showLoading();
+
+            setTimeout(() => {
+                hideLoading();
+
+                // AI主动分析消息
+                const analysisText = `您好！我已经分析了您当前的客户数据。\n\n📊 <strong>客户概况</strong>\n• 待跟进客户：<strong>12位</strong>\n• 未试驾客户：<strong>5位</strong>\n• 已试驾未成交：<strong>4位</strong>\n• 今日到期跟进：<strong>3位</strong>\n\n💡 我为您准备了针对性的跟进策略，请选择您想要处理的客户类型：`;
+
+                addMsg('ai', analysisText, []);
+
+                // 添加策略卡片
+                setTimeout(() => {
+                    addStrategyCards();
+                }, 800);
+            }, 1500);
+        }
+
+        // 添加策略卡片
+        function addStrategyCards() {
+            const container = document.getElementById('messagesView');
+            const cardsDiv = document.createElement('div');
+            cardsDiv.className = 'strategy-cards-container';
+            cardsDiv.style.cssText = 'margin: 0 0 24px 38px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; max-width: 800px;';
+
+            const cards = [
+                {
+                    title: '未试驾客户',
+                    value: '5',
+                    count: '+2',
+                    tags: ['高意向', '待跟进'],
+                    icon: '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 12H8.01M12 12H12.01M16 12H16.01M21 12C21 16.9706 16.9706 21 12 21C10.4607 21 9.01172 20.5983 7.76923 19.8925L3 21L4.10769 16.2308C3.40175 14.9883 3 13.5393 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+                    action: '未试驾客户'
+                },
+                {
+                    title: '已试驾待促成',
+                    value: '4',
+                    count: '68%',
+                    tags: ['热度高', '促成中'],
+                    icon: '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" stroke-width="2"/><circle cx="12" cy="12" r="6" stroke-width="2"/><circle cx="12" cy="12" r="2" stroke-width="2"/></svg>',
+                    action: '已试驾客户'
+                },
+                {
+                    title: '今日到期跟进',
+                    value: '3',
+                    count: '5h',
+                    tags: ['紧急', '今日'],
+                    icon: '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="9" stroke-width="2"/><path d="M12 6V12L16 14" stroke-width="2" stroke-linecap="round"/></svg>',
+                    action: '到期跟进'
+                },
+                {
+                    title: '长期未联系',
+                    value: '6',
+                    count: '7d+',
+                    tags: ['需唤醒', '低活跃'],
+                    icon: '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 3V16C3 17.1046 3.89543 18 5 18H21" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 9L13 14L10 11L7 14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+                    action: '长期未联系'
+                }
+            ];
+
+            cards.forEach(card => {
+                const tagsHTML = card.tags.map(tag => `<div class="strategy-card-tag">${tag}</div>`).join('');
+                const cardHTML = `
+                    <div class="strategy-card" onclick="handleStrategyCard('${card.action}')">
+                        <div class="strategy-card-header">
+                            <div class="strategy-card-icon">${card.icon}</div>
+                            <div class="strategy-card-count">${card.count}</div>
+                        </div>
+                        <div class="strategy-card-content">
+                            <div class="strategy-card-title">${card.title}</div>
+                            <div class="strategy-card-value">${card.value}位</div>
+                        </div>
+                        <div class="strategy-card-tags">
+                            ${tagsHTML}
+                        </div>
+                    </div>
+                `;
+                cardsDiv.innerHTML += cardHTML;
+            });
+
+            container.appendChild(cardsDiv);
+            scrollToBottom();
+        }
+
+        // 处理策略卡片点击
+        function handleStrategyCard(type) {
+            addMsg('user', `查看${type}客户`);
+
+            setTimeout(() => {
+                showLoading();
+                setTimeout(() => {
+                    hideLoading();
+                    showStrategyDetail(type);
+                }, 1000);
+            }, 200);
+        }
+
+        // 显示策略详情
+        function showStrategyDetail(type) {
+            let detailText = '';
+            let actions = [];
+
+            if (type === '未试驾客户') {
+                detailText = `<strong>未试驾客户分析</strong>\n\n👤 <strong>客户列表：</strong>\n1. 张先生 - L7意向 - 已咨询3天\n2. 李女士 - L8意向 - 已咨询5天\n3. 王先生 - L9意向 - 已咨询2天\n4. 赵女士 - L7意向 - 已咨询7天\n5. 刘先生 - L8意向 - 已咨询4天\n\n💡 <strong>建议策略：</strong>\n• 主动邀约试驾，强调智驾体验\n• 分享车主真实评价和用车场景\n• 告知近期优惠活动截止时间`;
+                actions = ['发送试驾邀约', '生成营销素材', '批量企微推送', '查看详细信息'];
+            } else if (type === '已试驾客户') {
+                detailText = `<strong>已试驾待促成客户</strong>\n\n👤 <strong>客户列表：</strong>\n1. 陈先生 - L7 - 试驾后3天\n2. 周女士 - L8 - 试驾后5天\n3. 吴先生 - L9 - 试驾后2天\n4. 郑女士 - L7 - 试驾后7天\n\n💡 <strong>建议策略：</strong>\n• 询问试驾感受，解决顾虑\n• 提供个性化金融方案\n• 强调限时优惠，制造紧迫感`;
+                actions = ['生成促成话术', '计算金融方案', '发送优惠信息', '安排再次试驾'];
+            } else if (type === '到期跟进') {
+                detailText = `<strong>今日到期跟进客户</strong>\n\n👤 <strong>待跟进：</strong>\n1. 孙先生 - 约定今日回复购车意向\n2. 黄女士 - 金融方案审批到期\n3. 徐先生 - 置换评估结果今日反馈\n\n💡 <strong>建议策略：</strong>\n• 及时跟进，展现专业度\n• 提前准备应对话术\n• 记录跟进结果，安排后续`;
+                actions = ['生成跟进话术', '查看客户详情', '设置提醒', '企微快速联系'];
+            } else if (type === '长期未联系') {
+                detailText = `<strong>长期未联系客户唤醒</strong>\n\n👤 <strong>客户列表：</strong>\n• 7天以上未联系：6位\n• 平均沉睡时间：12天\n\n💡 <strong>建议策略：</strong>\n• 发送关怀问候，而非直接推销\n• 分享新车型/新功能信息\n• 邀请参加线下活动或车主分享会`;
+                actions = ['生成唤醒话术', '推送新车资讯', '邀请活动', '批量企微消息'];
+            }
+
+            addMsg('ai', detailText, actions);
+        }
+
+        // 处理操作按钮点击
+        function handleAction(action) {
+            addMsg('user', action);
+
+            setTimeout(() => {
+                showLoading();
+                setTimeout(() => {
+                    hideLoading();
+
+                    if (action.includes('企微') || action.includes('推送') || action.includes('联系')) {
+                        addMsg('ai', `✅ 已为您打开企业微信推送界面\n\n您可以选择发送对象并编辑消息内容。消息将通过企业微信发送给选定的客户。`, ['确认发送', '修改内容', '返回']);
+                    } else if (action.includes('素材') || action.includes('话术') || action.includes('资讯')) {
+                        addMsg('ai', `✅ 已为您生成营销内容\n\n内容已根据客户特征和车型偏好定制。您可以直接使用或进行修改。`, ['查看内容', '复制话术', '发送给客户', '返回']);
+                    } else if (action.includes('方案') || action.includes('计算')) {
+                        addMsg('ai', `💰 金融方案已生成\n\n<strong>推荐方案：</strong>\n• 首付30% - 月供¥8,500\n• 首付40% - 月供¥7,200\n• 首付50% - 月供¥5,900\n\n已包含厂家金融补贴。`, ['发送给客户', '调整方案', '返回']);
+                    } else {
+                        addMsg('ai', `正在处理您的请求...`, ['继续', '返回']);
+                    }
+                }, 800);
+            }, 200);
+        }
+
+        // 初始化
+        console.log('理想汽车销售AI助手已启动');
+    </script>
+</body>
+</html>
